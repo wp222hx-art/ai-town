@@ -1,7 +1,7 @@
 export const ACTION_TIMEOUT = 120_000; // more time for local dev
 // export const ACTION_TIMEOUT = 60_000;// normally fine
 
-export const IDLE_WORLD_TIMEOUT = 5 * 60 * 1000;
+export const IDLE_WORLD_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours for development
 export const WORLD_HEARTBEAT_INTERVAL = 60 * 1000;
 
 export const MAX_STEP = 10 * 60 * 1000;
@@ -65,14 +65,64 @@ export const DELETE_BATCH_SIZE = 64;
 export const HUMAN_IDLE_TOO_LONG = 5 * 60 * 1000;
 
 export const ACTIVITIES = [
-  { description: 'reading a book', emoji: '📖', duration: 60_000 },
-  { description: 'daydreaming', emoji: '🤔', duration: 60_000 },
-  { description: 'gardening', emoji: '🥕', duration: 60_000 },
+  { description: '意识冥想', emoji: '🧘', duration: 60_000 },
+  { description: '数据探索', emoji: '🔍', duration: 60_000 },
+  { description: '像素创作', emoji: '🎨', duration: 60_000 },
+  { description: '记忆回溯', emoji: '💭', duration: 60_000 },
+  { description: '阅读古籍', emoji: '📜', duration: 60_000 },
+  { description: '维护代码', emoji: '💻', duration: 60_000 },
+  { description: '交易信息', emoji: '💰', duration: 60_000 },
+  { description: '战术演练', emoji: '⚔️', duration: 60_000 },
 ];
+
+/** Zone-based activity preferences: agents in specific zones prefer these activities */
+export const ZONE_ACTIVITIES: Record<string, { description: string; emoji: string; duration: number }[]> = {
+  '霓虹都市': [
+    { description: '分析市场行情', emoji: '📈', duration: 60_000 },
+    { description: '交易信息', emoji: '💰', duration: 60_000 },
+    { description: '巡视中央交易所', emoji: '🏦', duration: 60_000 },
+    { description: '与商人寻求合作', emoji: '🤝', duration: 60_000 },
+  ],
+  '量子战场': [
+    { description: '战术演练', emoji: '⚔️', duration: 60_000 },
+    { description: '战场数据分析', emoji: '📊', duration: 60_000 },
+    { description: '意识融合实验', emoji: '🧬', duration: 60_000 },
+    { description: '训练AI战斗单元', emoji: '🤖', duration: 60_000 },
+  ],
+  '永恒殿堂': [
+    { description: '哲学思辨', emoji: '🧐', duration: 60_000 },
+    { description: '像素创作', emoji: '🎨', duration: 60_000 },
+    { description: '阅读古籍', emoji: '📜', duration: 60_000 },
+    { description: '艺术品鉴赏', emoji: '🖼️', duration: 60_000 },
+  ],
+  '创世花园': [
+    { description: '意识冥想', emoji: '🧘', duration: 60_000 },
+    { description: '引导新意识体', emoji: '🌟', duration: 60_000 },
+    { description: '观察世界树', emoji: '🌳', duration: 60_000 },
+    { description: '感知意识能量流', emoji: '✨', duration: 60_000 },
+  ],
+  '记忆图书馆': [
+    { description: '记忆回溯', emoji: '💭', duration: 60_000 },
+    { description: '整理禁忌记忆', emoji: '🔒', duration: 60_000 },
+    { description: '鉴定记忆磎片', emoji: '🔮', duration: 60_000 },
+    { description: '与信息线人接头', emoji: '🕵️', duration: 60_000 },
+  ],
+  '混沌边界': [
+    { description: 'UGC灵感采集', emoji: '💡', duration: 60_000 },
+    { description: '像素创作', emoji: '🎨', duration: 60_000 },
+    { description: '探索代码磎片', emoji: '🧩', duration: 60_000 },
+    { description: '梦境迷宫测试', emoji: '🎭', duration: 60_000 },
+  ],
+  '深渊裂隙': [
+    { description: '深渊数据折叠', emoji: '🌀', duration: 60_000 },
+    { description: '破解本源代码', emoji: '⚠️', duration: 60_000 },
+    { description: '意识侵蚀抵抗', emoji: '🛡️', duration: 60_000 },
+  ],
+};
 
 export const ENGINE_ACTION_DURATION = 30000;
 
 // Bound the number of pathfinding searches we do per game step.
 export const MAX_PATHFINDS_PER_STEP = 16;
 
-export const DEFAULT_NAME = 'Me';
+export const DEFAULT_NAME = '我';

@@ -1,4 +1,4 @@
-import { HistoricalTimeManager } from '@/hooks/useHistoricalTime';
+import { HistoricalTimeManager } from '../hooks/useHistoricalTime';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import uPlot, { AlignedData, Options } from 'uplot';
 

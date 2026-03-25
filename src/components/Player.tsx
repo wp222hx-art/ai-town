@@ -45,7 +45,7 @@ export const Player = ({
   if (!character) {
     if (!logged.has(playerCharacter)) {
       logged.add(playerCharacter);
-      toast.error(`Unknown character ${playerCharacter}`);
+      toast.error(`未知角色 ${playerCharacter}`);
     }
     return null;
   }

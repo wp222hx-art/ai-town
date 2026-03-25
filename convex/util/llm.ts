@@ -4,9 +4,13 @@ const OPENAI_EMBEDDING_DIMENSION = 1536;
 const TOGETHER_EMBEDDING_DIMENSION = 768;
 const OLLAMA_EMBEDDING_DIMENSION = 1024;
 
-export const EMBEDDING_DIMENSION: number = OLLAMA_EMBEDDING_DIMENSION;
+export const EMBEDDING_DIMENSION: number = OPENAI_EMBEDDING_DIMENSION;
 
 export function detectMismatchedLLMProvider() {
+  // If a custom LLM provider is configured, skip dimension-based detection
+  if (process.env.LLM_API_URL || process.env.LLM_PROVIDER === 'custom') {
+    return;
+  }
   switch (EMBEDDING_DIMENSION) {
     case OPENAI_EMBEDDING_DIMENSION:
       if (!process.env.OPENAI_API_KEY) {
@@ -45,15 +49,37 @@ export interface LLMConfig {
 
 export function getLLMConfig(): LLMConfig {
   let provider = process.env.LLM_PROVIDER;
+  // Check custom provider first (highest priority when explicitly set)
+  if (provider === 'custom' || (!provider && process.env.LLM_API_URL && !process.env.OPENAI_API_KEY && !process.env.TOGETHER_API_KEY)) {
+    const apiKey = process.env.LLM_API_KEY;
+    const url = process.env.LLM_API_URL;
+    if (!url) throw new Error('LLM_API_URL is required for custom provider');
+    const chatModel = process.env.LLM_MODEL;
+    if (!chatModel) throw new Error('LLM_MODEL is required');
+    const embeddingModel = process.env.LLM_EMBEDDING_MODEL;
+    if (!embeddingModel) throw new Error('LLM_EMBEDDING_MODEL is required');
+    return {
+      provider: 'custom',
+      url,
+      chatModel,
+      embeddingModel,
+      stopWords: [],
+      apiKey,
+    };
+  }
   if (provider ? provider === 'openai' : process.env.OPENAI_API_KEY) {
     if (EMBEDDING_DIMENSION !== OPENAI_EMBEDDING_DIMENSION) {
       throw new Error('EMBEDDING_DIMENSION must be 1536 for OpenAI');
     }
+    // Support OPENAI_BASE_URL for proxy endpoints (e.g. GenSpark LLM proxy)
+    const baseUrl = process.env.OPENAI_BASE_URL
+      ? process.env.OPENAI_BASE_URL.replace(/\/v1\/?$/, '')
+      : 'https://api.openai.com';
     return {
       provider: 'openai',
-      url: 'https://api.openai.com',
-      chatModel: process.env.OPENAI_CHAT_MODEL ?? 'gpt-4o-mini',
-      embeddingModel: process.env.OPENAI_EMBEDDING_MODEL ?? 'text-embedding-ada-002',
+      url: baseUrl,
+      chatModel: process.env.OPENAI_CHAT_MODEL ?? 'gpt-5-mini',
+      embeddingModel: process.env.OPENAI_EMBEDDING_MODEL ?? 'text-embedding-3-small',
       stopWords: [],
       apiKey: process.env.OPENAI_API_KEY,
     };

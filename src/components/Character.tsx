@@ -94,6 +94,7 @@ export const Character = ({
         <Text x={18} y={-10} scale={0.8} text={'💬'} anchor={{ x: 0.5, y: 0.5 }} />
       )}
       {isViewer && <ViewerIndicator />}
+      <CharacterGlow isSpeaking={isSpeaking} isThinking={isThinking} isViewer={isViewer} />
       <AnimatedSprite
         ref={ref}
         isPlaying={isMoving}
@@ -111,10 +112,43 @@ export const Character = ({
 function ViewerIndicator() {
   const draw = useCallback((g: PIXI.Graphics) => {
     g.clear();
-    g.beginFill(0xffff0b, 0.5);
-    g.drawRoundedRect(-10, 10, 20, 10, 100);
+    // Warm pink glow for current player (sakura theme)
+    g.beginFill(0xff88aa, 0.3);
+    g.drawCircle(0, 2, 14);
+    g.endFill();
+    g.beginFill(0xff88aa, 0.55);
+    g.drawRoundedRect(-10, 10, 20, 6, 100);
     g.endFill();
   }, []);
+
+  return <Graphics draw={draw} />;
+}
+
+function CharacterGlow({ isSpeaking, isThinking, isViewer }: {
+  isSpeaking: boolean;
+  isThinking: boolean;
+  isViewer: boolean;
+}) {
+  const draw = useCallback((g: PIXI.Graphics) => {
+    g.clear();
+    // Subtle ground shadow / glow under every character
+    if (isSpeaking) {
+      // Warm pink glow when speaking (sakura theme)
+      g.beginFill(0xff6699, 0.25);
+      g.drawEllipse(0, 10, 12, 5);
+      g.endFill();
+    } else if (isThinking) {
+      // Soft lavender glow when thinking
+      g.beginFill(0xcc88dd, 0.2);
+      g.drawEllipse(0, 10, 12, 5);
+      g.endFill();
+    } else if (!isViewer) {
+      // Subtle warm shadow for idle NPCs
+      g.beginFill(0x886644, 0.12);
+      g.drawEllipse(0, 10, 10, 4);
+      g.endFill();
+    }
+  }, [isSpeaking, isThinking, isViewer]);
 
   return <Graphics draw={draw} />;
 }

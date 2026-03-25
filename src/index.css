@@ -45,28 +45,28 @@ body {
 }
 
 .game-background {
-  background: linear-gradient(rgba(41, 41, 41, 0.8), rgba(41, 41, 41, 0.8)),
-    url(../assets/background.webp);
-  background-blend-mode: hard-light;
+  background: linear-gradient(rgba(255, 220, 230, 0.15), rgba(180, 220, 180, 0.15)),
+    url(../assets/background_sakura.webp);
+  background-blend-mode: soft-light;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: fixed;
+  background-color: #f5e8ef;
 }
 
 .game-title {
-  background: linear-gradient(to bottom, #fec742, #dd7c42);
+  background: linear-gradient(to bottom, #f9a8c9, #d4739a);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0px 0.08em 0px #6e2146);
+  filter: drop-shadow(0px 0.08em 0px #6b2e4a);
 }
 
 .game-frame {
-  border-width: 36px;
-  border-image-source: url(../assets/ui/frame.svg);
-  border-image-repeat: stretch;
-  border-image-slice: 25%;
+  border: 2px solid rgba(255, 183, 197, 0.35);
+  border-radius: 8px;
+  box-shadow: 0 0 25px rgba(255, 183, 197, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
 .game-progress-bar {
@@ -88,12 +88,54 @@ body {
 
 @media screen and (min-width: 640px) {
   .game-frame {
-    border-width: 48px;
+    border: 2px solid rgba(255, 183, 197, 0.35);
   }
 }
 
 .shadow-solid {
-  text-shadow: 0 0.1em 0 rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 10px rgba(255, 150, 200, 0.4), 0 0.1em 0 rgba(80, 30, 50, 0.5);
+}
+
+/* Sakura glow effects */
+@keyframes sakuraPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.88; }
+}
+
+.neon-glow {
+  text-shadow: 0 0 8px rgba(255, 150, 200, 0.5), 0 0 25px rgba(255, 120, 170, 0.2);
+  animation: sakuraPulse 4s ease-in-out infinite;
+}
+
+.cyber-panel {
+  background: linear-gradient(135deg, rgba(45, 25, 35, 0.92) 0%, rgba(35, 20, 30, 0.95) 100%);
+  border: 1px solid rgba(255, 183, 197, 0.2);
+  box-shadow: 0 0 15px rgba(255, 150, 180, 0.06);
+}
+
+.cyber-border {
+  border: 1px solid rgba(255, 183, 197, 0.25);
+  position: relative;
+}
+
+.cyber-border::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 10%;
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 183, 197, 0.5), transparent);
+}
+
+.cyber-border::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 10%;
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 150, 200, 0.4), transparent);
 }
 
 .bubble {
@@ -173,6 +215,103 @@ body {
 
 .button:active span {
   transform: none;
+}
+
+/* Happy conversation bar animations */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(8px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes happyGlow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(255,183,197,0.2), 0 0 16px rgba(255,200,150,0.1);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(255,183,197,0.4), 0 0 32px rgba(255,200,150,0.2);
+  }
+}
+
+@keyframes confettiBurst {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  40% { transform: scale(1.3) rotate(15deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes rainbowBorder {
+  0% { border-color: rgba(255,183,197,0.5); }
+  33% { border-color: rgba(255,220,150,0.5); }
+  66% { border-color: rgba(180,220,255,0.5); }
+  100% { border-color: rgba(255,183,197,0.5); }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.4s ease-out;
+}
+
+.animate-popIn {
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.animate-happyGlow {
+  animation: happyGlow 2s ease-in-out infinite;
+}
+
+.animate-confetti {
+  animation: confettiBurst 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.animate-rainbowBorder {
+  animation: rainbowBorder 3s linear infinite;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Scrollbar styling for conversation feed */
+.scroll-smooth::-webkit-scrollbar {
+  width: 4px;
+}
+.scroll-smooth::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.1);
+  border-radius: 2px;
+}
+.scroll-smooth::-webkit-scrollbar-thumb {
+  background: rgba(255,183,197,0.2);
+  border-radius: 2px;
+}
+.scroll-smooth::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,183,197,0.4);
 }
 
 p[contenteditable='true']:empty::before {

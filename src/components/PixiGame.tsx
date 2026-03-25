@@ -14,6 +14,8 @@ import { DebugPath } from './DebugPath.tsx';
 import { PositionIndicator } from './PositionIndicator.tsx';
 import { SHOW_DEBUG_UI } from './Game.tsx';
 import { ServerGame } from '../hooks/serverGame.ts';
+import { SakuraEffects } from './SakuraEffects.tsx';
+import { MapItems } from './MapItems.tsx';
 
 export const PixiGame = (props: {
   worldId: Id<'worlds'>;
@@ -23,12 +25,17 @@ export const PixiGame = (props: {
   width: number;
   height: number;
   setSelectedElement: SelectElement;
+  isDemo?: boolean;
 }) => {
   // PIXI setup.
   const pixiApp = useApp();
   const viewportRef = useRef<Viewport | undefined>();
 
-  const humanTokenIdentifier = useQuery(api.world.userStatus, { worldId: props.worldId }) ?? null;
+  // In demo mode, skip Convex queries — there's no real backend
+  const humanTokenIdentifier = useQuery(
+    api.world.userStatus,
+    props.isDemo ? 'skip' : { worldId: props.worldId },
+  ) ?? null;
   const humanPlayerId = [...props.game.world.players.values()].find(
     (p) => p.human === humanTokenIdentifier,
   )?.id;
@@ -48,6 +55,7 @@ export const PixiGame = (props: {
     t: number;
   } | null>(null);
   const onMapPointerUp = async (e: any) => {
+    if (props.isDemo) return; // No navigation in demo mode
     if (dragStart.current) {
       const { screenX, screenY } = dragStart.current;
       dragStart.current = null;
@@ -82,7 +90,7 @@ export const PixiGame = (props: {
   const { width, height, tileDim } = props.game.worldMap;
   const players = [...props.game.world.players.values()];
 
-  // Zoom on the user’s avatar when it is created
+  // Zoom on the user's avatar when it is created
   useEffect(() => {
     if (!viewportRef.current || humanPlayerId === undefined) return;
 
@@ -115,6 +123,7 @@ export const PixiGame = (props: {
           ),
       )}
       {lastDestination && <PositionIndicator destination={lastDestination} tileDim={tileDim} />}
+      <MapItems worldId={props.worldId} tileDim={tileDim} />
       {players.map((p) => (
         <Player
           key={`player-${p.id}`}
@@ -125,6 +134,7 @@ export const PixiGame = (props: {
           historicalTime={props.historicalTime}
         />
       ))}
+      <SakuraEffects worldWidth={width * tileDim} worldHeight={height * tileDim} />
     </PixiViewport>
   );
 };
