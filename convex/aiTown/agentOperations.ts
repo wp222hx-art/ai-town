@@ -10,10 +10,11 @@ import {
 } from '../agent/conversation';
 import { assertNever } from '../util/assertNever';
 import { serializedAgent } from './agent';
-import { ACTIVITIES, ACTIVITY_COOLDOWN, CONVERSATION_COOLDOWN } from '../constants';
+import { ACTIVITIES, ACTIVITY_COOLDOWN, CONVERSATION_COOLDOWN, ZONE_ACTIVITIES } from '../constants';
 import { api, internal } from '../_generated/api';
 import { sleep } from '../util/sleep';
 import { serializedPlayer } from './player';
+import { Descriptions } from '../../data/characters';
 
 export const agentRememberConversation = internalAction({
   args: {
@@ -103,6 +104,45 @@ export const agentDoSomething = internalAction({
     const { player, agent } = args;
     const map = new WorldMap(args.map);
     const now = Date.now();
+
+    // ======== Item pickup check ========
+    // When an agent is idle, check if there are items nearby to pick up
+    try {
+      const playerDesc = await ctx.runQuery(internal.aiTown.game.getPlayerName, {
+        worldId: args.worldId,
+        playerId: player.id,
+      });
+      const pickedUp = await ctx.runMutation(internal.items.checkAndPickupNearby, {
+        worldId: args.worldId,
+        playerId: player.id,
+        playerX: player.position.x,
+        playerY: player.position.y,
+        playerName: playerDesc ?? player.id,
+      });
+      if (pickedUp.length > 0) {
+        // Agent found items! Do a special "using item" activity
+        const item = pickedUp[0];
+        await sleep(Math.random() * 500);
+        await ctx.runMutation(api.aiTown.main.sendInput, {
+          worldId: args.worldId,
+          name: 'finishDoSomething',
+          args: {
+            operationId: args.operationId,
+            agentId: agent.id,
+            activity: {
+              description: `发现了${item.emoji}${item.name}！正在学习使用：${item.usage}`,
+              emoji: item.emoji,
+              until: Date.now() + 15_000,
+            },
+          },
+        });
+        return;
+      }
+    } catch (e) {
+      // Item check failed, continue with normal behavior
+    }
+
+    // ======== Normal agent behavior ========
     // Don't try to start a new conversation if we were just in one.
     const justLeftConversation =
       agent.lastConversation && now < agent.lastConversation + CONVERSATION_COOLDOWN;
@@ -113,6 +153,18 @@ export const agentDoSomething = internalAction({
     // Decide whether to do an activity or wander somewhere.
     if (!player.pathfinding) {
       if (recentActivity || justLeftConversation) {
+        // 30% chance to walk toward a spawned item instead of random wandering
+        let destination = wanderDestination(map);
+        try {
+          const spawnedItems = await ctx.runQuery(internal.items.getSpawnedPositions, {
+            worldId: args.worldId,
+          });
+          if (spawnedItems.length > 0 && Math.random() < 0.3) {
+            const target = spawnedItems[Math.floor(Math.random() * spawnedItems.length)];
+            destination = { x: target.x, y: target.y };
+            console.log(`🎯 Agent ${player.id} walking toward item ${target.emoji}${target.name} at (${target.x}, ${target.y})`);
+          }
+        } catch {}
         await sleep(Math.random() * 1000);
         await ctx.runMutation(api.aiTown.main.sendInput, {
           worldId: args.worldId,
@@ -120,13 +172,13 @@ export const agentDoSomething = internalAction({
           args: {
             operationId: args.operationId,
             agentId: agent.id,
-            destination: wanderDestination(map),
+            destination,
           },
         });
         return;
       } else {
-        // TODO: have LLM choose the activity & emoji
-        const activity = ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)];
+        // Choose activity based on character's zone (if we can identify them)
+        const activity = pickActivityForAgent(player as any);
         await sleep(Math.random() * 1000);
         await ctx.runMutation(api.aiTown.main.sendInput, {
           worldId: args.worldId,
@@ -175,4 +227,23 @@ function wanderDestination(worldMap: WorldMap) {
     x: 1 + Math.floor(Math.random() * (worldMap.width - 2)),
     y: 1 + Math.floor(Math.random() * (worldMap.height - 2)),
   };
+}
+
+/** Pick an activity for this agent based on their character's zone */
+function pickActivityForAgent(player: { character?: string }) {
+  // Match character ID to Description to get zone
+  if (player.character) {
+    const desc = Descriptions.find((d) => d.character === player.character);
+    if (desc) {
+      const zoneActivities = ZONE_ACTIVITIES[desc.zone];
+      if (zoneActivities && zoneActivities.length > 0) {
+        // 70% chance to pick zone-specific activity, 30% generic
+        if (Math.random() < 0.7) {
+          return zoneActivities[Math.floor(Math.random() * zoneActivities.length)];
+        }
+      }
+    }
+  }
+  // Fallback: generic activity
+  return ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)];
 }

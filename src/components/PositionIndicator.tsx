@@ -19,8 +19,12 @@ export function PositionIndicator(props: {
     const progress = (now - destination.t) / ANIMATION_DURATION;
     const x = destination.x * tileDim;
     const y = destination.y * tileDim;
-    g.lineStyle(1.5, { h: 0, s: 50, l: 90 }, 0.5);
+    // Sakura pink ripple effect
+    const alpha = 0.6 * (1 - progress);
+    g.lineStyle(2, 0xff88aa, alpha);
     g.drawCircle(x, y, RADIUS_TILES * progress * tileDim);
+    g.lineStyle(1, 0xffccdd, alpha * 0.5);
+    g.drawCircle(x, y, RADIUS_TILES * progress * tileDim * 0.6);
   };
   return <Graphics draw={draw} />;
 }

@@ -369,3 +369,18 @@ export const saveWorld = internalMutation({
     await Game.saveDiff(ctx, args.worldId, args.worldDiff);
   },
 });
+
+/** Get player name by ID (for item pickup logs) */
+export const getPlayerName = internalQuery({
+  args: {
+    worldId: v.id('worlds'),
+    playerId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const desc = await ctx.db
+      .query('playerDescriptions')
+      .withIndex('worldId', (q) => q.eq('worldId', args.worldId).eq('playerId', args.playerId))
+      .first();
+    return desc?.name ?? null;
+  },
+});

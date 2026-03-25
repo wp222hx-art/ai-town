@@ -16,6 +16,7 @@ import { fetchEmbedding } from './util/llm';
 import { chatCompletion } from './util/llm';
 import { startConversationMessage } from './agent/conversation';
 import { GameId } from './aiTown/ids';
+import * as newMapData from '../data/sakura_town';
 
 // Clear all of the tables except for the embeddings cache.
 const excludedTables: Array<TableNames> = ['embeddingsCache'];
@@ -184,6 +185,65 @@ export const testCompletion = internalAction({
         { content: 'Where is pizza?', role: 'user' },
       ],
     });
+  },
+});
+
+export const updateMapTileset = mutation({
+  args: {
+    tileSetUrl: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const worldStatus = await ctx.db
+      .query('worldStatus')
+      .filter((q) => q.eq(q.field('isDefault'), true))
+      .first();
+    if (!worldStatus) {
+      throw new Error('No default world found');
+    }
+    const map = await ctx.db
+      .query('maps')
+      .withIndex('worldId', (q) => q.eq('worldId', worldStatus.worldId))
+      .unique();
+    if (!map) {
+      throw new Error(`No map for world ${worldStatus.worldId}`);
+    }
+    await ctx.db.patch(map._id, { tileSetUrl: args.tileSetUrl });
+    console.log(`Updated map tileset to: ${args.tileSetUrl}`);
+    return { success: true, oldUrl: map.tileSetUrl, newUrl: args.tileSetUrl };
+  },
+});
+
+export const replaceMapFull = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const worldStatus = await ctx.db
+      .query('worldStatus')
+      .filter((q) => q.eq(q.field('isDefault'), true))
+      .first();
+    if (!worldStatus) {
+      throw new Error('No default world found');
+    }
+    const existingMap = await ctx.db
+      .query('maps')
+      .withIndex('worldId', (q) => q.eq('worldId', worldStatus.worldId))
+      .unique();
+    if (!existingMap) {
+      throw new Error(`No map for world ${worldStatus.worldId}`);
+    }
+    // Use statically imported map data
+    await ctx.db.patch(existingMap._id, {
+      width: newMapData.mapwidth,
+      height: newMapData.mapheight,
+      tileSetUrl: newMapData.tilesetpath,
+      tileSetDimX: newMapData.tilesetpxw,
+      tileSetDimY: newMapData.tilesetpxh,
+      tileDim: newMapData.tiledim,
+      bgTiles: newMapData.bgtiles,
+      objectTiles: newMapData.objmap,
+      animatedSprites: newMapData.animatedsprites,
+    });
+    console.log(`Replaced map: ${newMapData.mapwidth}x${newMapData.mapheight}, tileset=${newMapData.tilesetpath}`);
+    return { success: true, width: newMapData.mapwidth, height: newMapData.mapheight };
   },
 });
 

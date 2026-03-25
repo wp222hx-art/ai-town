@@ -42,3 +42,9 @@ dist
 
 convex-local*
 convex_local*
+
+# Large archives and temp files
+convex-backend.zip
+core
+synapse_plan.txt
+local_llm_server.py
